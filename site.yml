@@ -1,0 +1,17 @@
+---
+- name: Install WordPress, MariaDB, Apache2 with Letsencrypt SSL
+  hosts: wordpress
+  remote_user: ansible
+  become: yes
+  connection: ssh
+  gather_facts: no
+  vars:
+    playbook_version: 0.0.1
+  pre_tasks:
+   - name: Update APT cache
+     apt: update_cache=yes
+  roles:
+    - common
+    - mariadb
+    - apache
+    - wordpress

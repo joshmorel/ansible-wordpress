@@ -1,0 +1,15 @@
+---
+
+# Note: "vault_" variables in encrypted untracked "vault" file in same folder
+
+# Server root paths
+wp_document_root: /var/www/wordpress
+ssl_root: /etc/letsencrypt
+
+# Admin email
+admin_email: "{{ vault_admin_email }}"
+
+# WordPress database settings
+wp_db_name: wordpress
+wp_db_user: "{{ vault_wp_db_user }}"
+wp_db_password: "{{ vault_wp_db_password }}"

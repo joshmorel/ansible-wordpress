@@ -1,0 +1,31 @@
+--- # Install Apache Web Server and PHP Modules
+
+- name: Install Apache2
+  apt:
+    name: apache2
+    state: latest
+
+- name: Enable required Apache modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - rewrite
+    - ssl
+
+- name: Install PHP-7 Modules
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - php7.0
+    - php7.0-bz2
+    - php7.0-curl
+    - php7.0-gd
+    - php7.0-mbstring
+    - php7.0-mcrypt
+    - php7.0-mysql
+    - php7.0-xml
+    - php7.0-xmlrpc
+    - php7.0-tidy
+    - libapache2-mod-php7.0

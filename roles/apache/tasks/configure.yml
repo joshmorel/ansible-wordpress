@@ -1,0 +1,23 @@
+--- # Configure Apache for WordPress
+
+- name: Copy wordpress.conf virtual hosts file
+  template:
+    src: wordpress.conf.j2
+    dest: /etc/apache2/sites-available/wordpress.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable WordPress site with symbolic link
+  file:
+    src: /etc/apache2/sites-available/wordpress.conf
+    dest: /etc/apache2/sites-enabled/wordpress.conf
+    owner: root
+    group: root
+    state: link
+
+- name: Disable default site
+  file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  notify: restart web service

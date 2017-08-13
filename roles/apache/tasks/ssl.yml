@@ -1,0 +1,62 @@
+--- # Install Letsencrypt Certificate
+
+- name: Create ssl file directories
+  file:
+    path: "{{ ssl_root }}/{{ item }}"
+    state: directory
+  with_items:
+    - csr
+    - keys
+    - certs
+
+- name: Generate account key
+  command: "openssl genrsa -out {{ ssl_root }}/account.key"
+  args:
+    creates: "{{ ssl_root }}/account.key"
+
+- name: Generate certificate private key
+  command: "openssl genrsa -out {{ ssl_root }}/keys/{{ inventory_hostname }}.pem"
+  args:
+    creates: "{{ ssl_root }}/keys/{{ inventory_hostname }}.pem"
+
+- name: Generate certificate signing request
+  command: "openssl req -new -sha256 -key {{ ssl_root }}/keys/{{ inventory_hostname }}.pem -out {{ ssl_root }}/csr/{{ inventory_hostname }}.pem -subj /CN={{ inventory_hostname }}"
+  args:
+    creates: "{{ ssl_root }}/csr/{{ inventory_hostname }}.pem"
+
+- name: Initiate letsencrypt challenge
+  letsencrypt:
+    account_key: "{{ ssl_root }}/account.key"
+    csr: "{{ ssl_root }}/csr/{{ inventory_hostname }}.pem"
+    acme_directory: "https://acme-v01.api.letsencrypt.org/directory"
+    dest: "{{ ssl_root }}/certs/{{ inventory_hostname }}.crt"
+    account_email: "{{ admin_email }}"
+    challenge: "http-01"
+  register: letsencrypt_challenge
+
+- name: Create directory to fulfill letsencrypt challenge
+  file:
+    dest: /var/www/html/{{ letsencrypt_challenge['challenge_data'][inventory_hostname]['http-01']['resource']|dirname }}
+    state: directory
+  when: letsencrypt_challenge|changed
+
+- name: Create file to fulfill letsencrypt challenge
+  copy:
+    dest: /var/www/html/{{ letsencrypt_challenge ['challenge_data'][inventory_hostname]['http-01']['resource'] }}
+    content: "{{ letsencrypt_challenge ['challenge_data'][inventory_hostname]['http-01']['resource_value'] }}"
+    owner: www-data
+    group: www-data
+    mode: 0644
+  when: letsencrypt_challenge|changed
+
+- name: Write signed letsencrypt certificate
+  letsencrypt:
+    account_key: "{{ ssl_root }}/account.key"
+    csr: "{{ ssl_root }}/csr/{{ inventory_hostname }}.pem"
+    dest: "{{ ssl_root }}/certs/{{ inventory_hostname }}.crt"
+    acme_directory: "https://acme-v01.api.letsencrypt.org/directory"
+    account_email: "{{ admin_email }}"
+    challenge: "http-01"
+    data: "{{ letsencrypt_challenge }}"
+  when: letsencrypt_challenge|changed
+  notify: restart web service

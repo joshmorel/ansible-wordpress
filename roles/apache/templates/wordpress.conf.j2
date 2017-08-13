@@ -1,0 +1,40 @@
+# {{ ansible_managed }}
+
+{% if 'wordpress-sandbox' in group_names %}
+Listen 80
+
+<VirtualHost *:80>
+    ServerName "{{ inventory_hostname }}"
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+	DocumentRoot "{{ wp_document_root }}"
+</VirtualHost>
+{% endif %}
+
+{% if 'wordpress-prod' in group_names %}
+Listen 80
+Listen 443
+
+# Redirect all HTTP traffic to HTTPS
+<VirtualHost *:80>
+    # Only take traffic for "cloud.*" CNAME
+    ServerName "{{ inventory_hostname }}"
+    Redirect permanent / "https://{{ inventory_hostname }}/"
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName "{{ inventory_hostname }}"
+
+    # Use SSL
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/certs/{{ inventory_hostname }}.crt
+    SSLCertificateKeyFile /etc/letsencrypt/keys/{{ inventory_hostname }}.pem
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+    DocumentRoot "{{ wp_document_root }}"
+
+</VirtualHost>
+{% endif %}

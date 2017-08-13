@@ -1,0 +1,8 @@
+---
+# tasks file for mariadb role
+
+- include: install.yml
+  become: yes
+- include: create.yml
+  become: yes
+  notify: restart db service

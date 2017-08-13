@@ -1,0 +1,8 @@
+--- # Install MariaDB
+- name: Install MariaDB Server and Client
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - mariadb-server
+    - mariadb-client
+    - python-mysqldb

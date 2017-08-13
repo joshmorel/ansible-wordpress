@@ -1,0 +1,8 @@
+---
+- include: install.yml
+  become: yes
+- include: ssl.yml
+  become: yes
+  when: inventory_hostname in groups['wordpress-prod']
+- include: configure.yml
+  become: yes
